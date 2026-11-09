@@ -13,9 +13,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -51,16 +53,36 @@ fun QuizScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     var currentIndex by rememberSaveable { mutableIntStateOf(0) }
     var answered by rememberSaveable { mutableStateOf(false) }
+    var correctCount by rememberSaveable { mutableIntStateOf(0) }
+    var showResult by rememberSaveable { mutableStateOf(false) }
     val question = questionBank[currentIndex]
 
     fun checkAnswer(userAnswer: Boolean) {
-        val messageResId = if (userAnswer == question.answer) {
-            R.string.correct_toast
-        } else {
-            R.string.incorrect_toast
+        val isCorrect = userAnswer == question.answer
+        if (isCorrect) {
+            correctCount += 1
         }
+        val messageResId = if (isCorrect) R.string.correct_toast else R.string.incorrect_toast
         Toast.makeText(context, messageResId, Toast.LENGTH_SHORT).show()
         answered = true
+        if (currentIndex == questionBank.lastIndex) {
+            showResult = true
+        }
+    }
+
+    if (showResult) {
+        AlertDialog(
+            onDismissRequest = { showResult = false },
+            title = { Text(stringResource(R.string.result_title)) },
+            text = {
+                Text(stringResource(R.string.result_text, correctCount, questionBank.size))
+            },
+            confirmButton = {
+                TextButton(onClick = { showResult = false }) {
+                    Text(stringResource(R.string.ok_button))
+                }
+            }
+        )
     }
 
     Column(
